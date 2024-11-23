@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -48,7 +49,7 @@ func cleanUselessData(data []string) []string {
 		}
 		return data[startInx:]
 	}
-	return []string{} 
+	return []string{}
 }
 
 func getKind(data []string) string {
@@ -104,10 +105,10 @@ func getStatusCode(err error) int {
 }
 
 func errorBadRequest(err error) bool {
-	return err == service.ErrEmptyKind ||
-		err == service.ErrUnknownKind ||
-		err == service.ErrInvalidValue ||
-		err == service.ErrEmptyValue
+	return errors.Is(err, service.ErrEmptyKind) ||
+		errors.Is(err, service.ErrUnknownKind) ||
+		errors.Is(err, service.ErrInvalidValue) ||
+		errors.Is(err, service.ErrEmptyValue)
 }
 
 func errorNotFound(err error) bool {
