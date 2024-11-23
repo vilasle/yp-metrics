@@ -21,7 +21,7 @@ func main() {
 
 	svc := service.NewStorageService(gaugeStorage, counterStorage)
 
-	server := rest.NewHttpServer(":8080")
+	server := rest.NewHTTPServer(":8080")
 
 	server.Register("/update/", rest.UpdateHandler(svc))
 

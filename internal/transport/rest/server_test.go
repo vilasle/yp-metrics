@@ -27,7 +27,7 @@ func TestHttpServer_Register(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewHttpServer(":8080")
+			s := NewHTTPServer(":8080")
 			s.Register(tt.args.path, tt.args.handler)
 		})
 	}
@@ -45,7 +45,7 @@ func TestHttpServer_StartStop(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewHttpServer(":8080")
+			s := NewHTTPServer(":8080")
 			s.Register("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
 			go func() {
@@ -81,7 +81,7 @@ func TestHttpServer_StartForceStop(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewHttpServer(":8080")
+			s := NewHTTPServer(":8080")
 			s.Register("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
 			go func() {
@@ -133,7 +133,7 @@ func TestHttpServer_IsRunning(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := HttpServer{
+			s := HTTPServer{
 				srv:     tt.fields.srv,
 				mux:     tt.fields.mux,
 				running: tt.fields.running,

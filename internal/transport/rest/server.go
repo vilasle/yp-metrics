@@ -6,14 +6,14 @@ import (
 	"time"
 )
 
-type HttpServer struct {
+type HTTPServer struct {
 	srv     *http.Server
 	mux     *http.ServeMux
 	running bool
 }
 
-func NewHttpServer(addr string) HttpServer {
-	return HttpServer{
+func NewHTTPServer(addr string) HTTPServer {
+	return HTTPServer{
 		srv: &http.Server{
 			Addr:         addr,
 			ReadTimeout:  10 * time.Second,
@@ -24,11 +24,11 @@ func NewHttpServer(addr string) HttpServer {
 	}
 }
 
-func (s HttpServer) Register(path string, handler http.Handler) {
+func (s HTTPServer) Register(path string, handler http.Handler) {
 	s.mux.Handle(path, handler)
 }
 
-func (s *HttpServer) Start() error {
+func (s *HTTPServer) Start() error {
 	s.srv.Handler = s.mux
 	s.running = true
 	defer func() {
@@ -44,11 +44,11 @@ func (s *HttpServer) Start() error {
 	return err
 }
 
-func (s HttpServer) IsRunning() bool {
+func (s HTTPServer) IsRunning() bool {
 	return s.running
 }
 
-func (s *HttpServer) Stop() error {
+func (s *HTTPServer) Stop() error {
 	if err := s.srv.Shutdown(context.Background()); err != nil {
 		s.running = false
 		return err
@@ -56,6 +56,6 @@ func (s *HttpServer) Stop() error {
 	return nil
 }
 
-func (s HttpServer) ForceStop() error {
+func (s HTTPServer) ForceStop() error {
 	return s.srv.Close()
 }
