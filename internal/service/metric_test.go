@@ -9,7 +9,7 @@ import (
 
 func Test_gaugeSaver_save(t *testing.T) {
 	type fields struct {
-		metric     rawMetric
+		metric     RawMetric
 		repository repository.MetricRepository[model.Gauge]
 	}
 	tests := []struct {
@@ -34,7 +34,7 @@ func Test_gaugeSaver_save(t *testing.T) {
 
 func Test_counterSaver_save(t *testing.T) {
 	type fields struct {
-		metric     rawMetric
+		metric     RawMetric
 		repository repository.MetricRepository[model.Counter]
 	}
 	tests := []struct {

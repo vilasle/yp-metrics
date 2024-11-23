@@ -25,25 +25,25 @@ func NewStorageService(
 	}
 }
 
-func (s StorageService) Save(metric rawMetric) error {
+func (s StorageService) Save(metric RawMetric) error {
 	if err := s.checkInput(metric); err != nil {
 		return err
 	}
 	return s.save(metric)
 }
 
-func (s StorageService) save(metric rawMetric) error {
+func (s StorageService) save(metric RawMetric) error {
 	saver := s.getSaverByType(metric)
 	return saver.save()
 }
 
-func (s StorageService) checkInput(metric rawMetric) error {
-	if metric.name == "" {
-		return ErrEmptyName
-	}
-
+func (s StorageService) checkInput(metric RawMetric) error {
 	if metric.kind == "" {
 		return ErrEmptyKind
+	}
+
+	if metric.name == "" {
+		return ErrEmptyName
 	}
 
 	if metric.value == "" {
@@ -52,7 +52,7 @@ func (s StorageService) checkInput(metric rawMetric) error {
 	return nil
 }
 
-func (s StorageService) getSaverByType(metric rawMetric) metricSaver {
+func (s StorageService) getSaverByType(metric RawMetric) metricSaver {
 	switch metric.kind {
 	case keyGauge:
 		return gaugeSaver{
