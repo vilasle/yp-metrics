@@ -1,10 +1,11 @@
-package service
+package server
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/vilasle/yp-metrics/internal/metric"
 	"github.com/vilasle/yp-metrics/internal/model"
 	"github.com/vilasle/yp-metrics/internal/repository"
 	"github.com/vilasle/yp-metrics/internal/repository/memory"
@@ -22,7 +23,7 @@ func TestStorageService_Save(t *testing.T) {
 	}
 
 	type args struct {
-		metric RawMetric
+		metric metric.RawMetric
 	}
 	tests := []struct {
 		name   string
@@ -34,11 +35,7 @@ func TestStorageService_Save(t *testing.T) {
 			name:   "problems with input, did not fill name of value",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "",
-					kind:  keyGauge,
-					value: "12.45",
-				},
+				metric: metric.NewRawMetric("", keyGauge, "12.45"),
 			},
 			err: ErrEmptyName,
 		},
@@ -46,11 +43,7 @@ func TestStorageService_Save(t *testing.T) {
 			name:   "problems with input, did not fill kind of metric",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  "",
-					value: "12.45",
-				},
+				metric: metric.NewRawMetric("test", "", "12.45"),
 			},
 			err: ErrEmptyKind,
 		},
@@ -58,11 +51,7 @@ func TestStorageService_Save(t *testing.T) {
 			name:   "problems with input, did not fill value of metric",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  keyGauge,
-					value: "",
-				},
+				metric: metric.NewRawMetric("test", keyGauge, ""),
 			},
 			err: ErrEmptyValue,
 		},
@@ -70,11 +59,7 @@ func TestStorageService_Save(t *testing.T) {
 			name:   "metric is filled but contents unknown kind",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  "test",
-					value: "123.4",
-				},
+				metric: metric.NewRawMetric("test", "test", "123.4"),
 			},
 			err: ErrUnknownKind,
 		},
@@ -82,11 +67,7 @@ func TestStorageService_Save(t *testing.T) {
 			name:   "gauge metric is filled and kind is right",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  keyGauge,
-					value: "123.4",
-				},
+				metric: metric.NewRawMetric("test", keyGauge, "123.4"),
 			},
 			err: nil,
 		},
@@ -94,11 +75,7 @@ func TestStorageService_Save(t *testing.T) {
 			name:   "gauge metric is filled and kind is right, value has wrong type",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  keyGauge,
-					value: "test",
-				},
+				metric: metric.NewRawMetric("test", keyGauge, "test"),
 			},
 			err: model.ErrConvertMetricFromString,
 		},
@@ -106,11 +83,7 @@ func TestStorageService_Save(t *testing.T) {
 			name:   "counter metric is filled and kind is right",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  keyCounter,
-					value: "144",
-				},
+				metric: metric.NewRawMetric("test", keyCounter, "144"),
 			},
 			err: nil,
 		},
@@ -118,11 +91,7 @@ func TestStorageService_Save(t *testing.T) {
 			name:   "counter metric is filled and kind is right, value has wrong type",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  keyCounter,
-					value: "test",
-				},
+				metric: metric.NewRawMetric("test", keyCounter, "test"),
 			},
 			err: model.ErrConvertMetricFromString,
 		},
@@ -152,7 +121,7 @@ func TestStorageService_checkInput(t *testing.T) {
 	}
 
 	type args struct {
-		metric RawMetric
+		data metric.RawMetric
 	}
 	tests := []struct {
 		name   string
@@ -164,11 +133,7 @@ func TestStorageService_checkInput(t *testing.T) {
 			name:   "all is filled",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  "gauge",
-					value: "12.45",
-				},
+				data: metric.NewRawMetric("test", keyGauge, "12.45"),
 			},
 			err: nil,
 		},
@@ -176,11 +141,7 @@ func TestStorageService_checkInput(t *testing.T) {
 			name:   "empty name",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "",
-					kind:  "gauge",
-					value: "12.45",
-				},
+				data: metric.NewRawMetric("", keyGauge, "12.45"),
 			},
 			err: ErrEmptyName,
 		},
@@ -188,11 +149,7 @@ func TestStorageService_checkInput(t *testing.T) {
 			name:   "empty kind",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  "",
-					value: "12.45",
-				},
+				data: metric.NewRawMetric("test", "", "12.45"),
 			},
 			err: ErrEmptyKind,
 		},
@@ -200,11 +157,7 @@ func TestStorageService_checkInput(t *testing.T) {
 			name:   "empty value",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  "gauge",
-					value: "",
-				},
+				data: metric.NewRawMetric("test", keyGauge, ""),
 			},
 			err: ErrEmptyValue,
 		},
@@ -216,7 +169,7 @@ func TestStorageService_checkInput(t *testing.T) {
 				gaugeStorage:   tt.fields.gaugeStorage,
 				counterStorage: tt.fields.counterStorage,
 			}
-			err := s.checkInput(tt.args.metric)
+			err := s.checkInput(tt.args.data)
 
 			if tt.err == nil {
 				assert.NoError(t, err)
@@ -239,7 +192,7 @@ func TestStorageService_getSaverByType(t *testing.T) {
 	}
 
 	type args struct {
-		metric RawMetric
+		data metric.RawMetric
 	}
 	tests := []struct {
 		name   string
@@ -251,49 +204,27 @@ func TestStorageService_getSaverByType(t *testing.T) {
 			name:   "gauge",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  "gauge",
-					value: "12.45",
-				},
+				data: metric.NewRawMetric("test", keyGauge, "12.45"),
 			},
-			want: gaugeSaver{
-				repository: _fields.gaugeStorage,
-				metric: RawMetric{
-					name:  "test",
-					kind:  "gauge",
-					value: "12.45",
-				},
-			},
+			want: metric.NewGaugeSaver(
+				metric.NewRawMetric("test", keyGauge, "12.45"),
+				_fields.gaugeStorage),
 		},
 		{
 			name:   "counter",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  "counter",
-					value: "12",
-				},
+				data: metric.NewRawMetric("test", keyCounter, "12"),
 			},
-			want: counterSaver{
-				repository: _fields.counterStorage,
-				metric: RawMetric{
-					name:  "test",
-					kind:  "counter",
-					value: "12",
-				},
-			},
+			want: metric.NewCounterSaver(
+				metric.NewRawMetric("test", keyCounter, "12"),
+				_fields.counterStorage),
 		},
 		{
 			name:   "unknown saver",
 			fields: _fields,
 			args: args{
-				metric: RawMetric{
-					name:  "test",
-					kind:  "test",
-					value: "12",
-				},
+				data: metric.NewRawMetric("test", "test", "12"),
 			},
 			want: unknownSaver{
 				kind: "test",
@@ -307,7 +238,7 @@ func TestStorageService_getSaverByType(t *testing.T) {
 				gaugeStorage:   tt.fields.gaugeStorage,
 				counterStorage: tt.fields.counterStorage,
 			}
-			got := s.getSaverByType(tt.args.metric)
+			got := s.getSaverByType(tt.args.data)
 
 			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("StorageService.getSaverByType() = %v, want %v", got, tt.want)

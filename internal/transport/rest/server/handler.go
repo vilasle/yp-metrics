@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vilasle/yp-metrics/internal/service"
+	"github.com/vilasle/yp-metrics/internal/metric"
+	"github.com/vilasle/yp-metrics/internal/service/server"
 )
 
 type metricHandler func(http.ResponseWriter, *http.Request) http.Handler
@@ -14,7 +15,7 @@ func (mh metricHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mh(w, r)
 }
 
-func UpdateHandler(svc *service.StorageService) http.Handler {
+func UpdateHandler(svc *server.StorageService) http.Handler {
 	return metricHandler(func(w http.ResponseWriter, r *http.Request) http.Handler {
 		if methodIsNotAllowed(r.Method) {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -26,13 +27,11 @@ func UpdateHandler(svc *service.StorageService) http.Handler {
 			return nil
 		}
 
-		data := cleanUselessData(strings.Split(r.URL.Path, "/"))
+		d := cleanUselessData(strings.Split(r.URL.Path, "/"))
 
-		k, n, v := getKind(data), getName(data), getValue(data)
-
-		metric := service.NewRawMetric(k, n, v)
-
-		err := svc.Save(metric)
+		err := svc.Save(
+			metric.NewRawMetric( getName(d) , getKind(d), getValue(d)),
+		)
 
 		w.Header().Add("Content-Type", "text/plain")
 		w.WriteHeader(getStatusCode(err))
@@ -105,12 +104,12 @@ func getStatusCode(err error) int {
 }
 
 func errorBadRequest(err error) bool {
-	return errors.Is(err, service.ErrEmptyKind) ||
-		errors.Is(err, service.ErrUnknownKind) ||
-		errors.Is(err, service.ErrInvalidValue) ||
-		errors.Is(err, service.ErrEmptyValue)
+	return errors.Is(err, server.ErrEmptyKind) ||
+		errors.Is(err, server.ErrUnknownKind) ||
+		errors.Is(err, server.ErrInvalidValue) ||
+		errors.Is(err, server.ErrEmptyValue)
 }
 
 func errorNotFound(err error) bool {
-	return err == service.ErrEmptyName
+	return err == server.ErrEmptyName
 }
