@@ -1,3 +1,93 @@
 package main
 
-func main() {}
+import (
+	"os"
+	"os/signal"
+	"time"
+
+	"github.com/vilasle/yp-metrics/internal/service/agent/collector"
+	"github.com/vilasle/yp-metrics/internal/service/agent/sender/rest"
+)
+
+func main() {
+
+	c := collector.NewRuntimeCollector()
+
+	metrics := defaultGaugeMetrics()
+	err := c.RegisterMetric(metrics...)
+
+	if err != nil {
+		//TODO add message
+		panic(err)
+	}
+
+	pollInterval := time.Second * 2
+	reportInterval := time.Second * 10
+
+	c.RegisterEvent(func(c *collector.RuntimeCollector) {
+		counter := c.GetCounterValue("PullCount")
+		counter.Increment()
+
+		c.SetCounterValue(counter)
+	})
+
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt)
+
+	pollTicker := time.NewTicker(pollInterval)
+	reportTicker := time.NewTicker(reportInterval)
+
+	sender, err := rest.NewHTTPSender("http://localhost:8080/update/")
+	if err != nil {
+		//TODO
+		panic(err)
+	}
+
+	agent := NewCollectorAgent(c, sender)
+
+
+	for run := true; run;  {
+		select {
+		case <-pollTicker.C:
+			agent.Collect()
+		case <-reportTicker.C:
+			agent.Report()
+		case <-sigint:
+			pollTicker.Stop()
+			reportTicker.Stop()
+			run = false
+		}
+	}
+}
+
+func defaultGaugeMetrics() []string {
+	return []string{
+		"Alloc",
+		"BuckHashSys",
+		"Frees",
+		"GCCPUFraction",
+		"GCSys",
+		"HeapAlloc",
+		"HeapIdle",
+		"HeapInuse",
+		"HeapObjects",
+		"HeapReleased",
+		"HeapSys",
+		"LastGC",
+		"Lookups",
+		"MCacheInuse",
+		"MCacheSys",
+		"MSpanInuse",
+		"MSpanSys",
+		"Mallocs",
+		"NextGC",
+		"NumForcedGC",
+		"NumGC",
+		"OtherSys",
+		"PauseTotalNs",
+		"StackInuse",
+		"StackSys",
+		"Sys",
+		"TotalAlloc",
+	}
+}

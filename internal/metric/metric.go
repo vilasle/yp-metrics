@@ -1,52 +1,58 @@
 package metric
 
 import (
-	"errors"
-
 	"github.com/vilasle/yp-metrics/internal/model"
-	"github.com/vilasle/yp-metrics/internal/repository"
 )
 
-type RawMetric struct {
-	Name  string
-	Kind  string
-	Value string
+type Metric interface {
+	Name() string
+	Type() string
+	Value() string
 }
 
-func NewRawMetric(name, kind, value string) RawMetric {
-	return RawMetric{Name: name, Kind: kind, Value: value}
+type GaugeMetric struct {
+	name  string
+	value model.Gauge
 }
 
-type gaugeSaver struct {
-	metric     RawMetric
-	repository repository.MetricRepository[model.Gauge]
+func NewGaugeMetric(name string, value float64) GaugeMetric {
+	return GaugeMetric{name: name, value: model.Gauge(value)}
 }
 
-func NewGaugeSaver(metric RawMetric, repository repository.MetricRepository[model.Gauge]) gaugeSaver {
-	return gaugeSaver{metric: metric, repository: repository}
+func (m GaugeMetric) Name() string {
+	return m.name
 }
 
-func (s gaugeSaver) Save() error {
-	if value, err := model.GaugeFromString(s.metric.Value); err == nil {
-		return s.repository.Save(s.metric.Name, value)
-	} else {
-		return errors.Join(err, ErrConvertingRawValue)
-	}
+func (m GaugeMetric) Type() string {
+	return m.value.Type()
 }
 
-type counterSaver struct {
-	metric     RawMetric
-	repository repository.MetricRepository[model.Counter]
+func (m GaugeMetric) Value() string {
+	return m.value.Value()
 }
 
-func NewCounterSaver(metric RawMetric, repository repository.MetricRepository[model.Counter]) counterSaver {
-	return counterSaver{metric: metric, repository: repository}
+
+type CounterMetric struct {
+	name  string
+	value model.Counter
 }
 
-func (s counterSaver) Save() error {
-	if value, err := model.CounterFromString(s.metric.Value); err == nil {
-		return s.repository.Save(s.metric.Name, value)
-	} else {
-		return errors.Join(err, ErrConvertingRawValue)
-	}
+func NewCounterMetric(name string, value int64) CounterMetric {
+	return CounterMetric{name: name, value: model.Counter(value)}
+}
+
+func (m CounterMetric) Name() string {
+	return m.name
+}
+
+func (m CounterMetric) Value() string {
+	return m.value.Value()
+}
+
+func (m CounterMetric) Type() string {
+	return m.value.Type()
+}
+
+func (m *CounterMetric) Increment() {
+	m.value++
 }

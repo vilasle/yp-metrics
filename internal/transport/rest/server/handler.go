@@ -2,6 +2,7 @@ package rest
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -26,11 +27,14 @@ func UpdateHandler(svc *server.StorageService) http.Handler {
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 			return nil
 		}
-
+		//TODO drop it
+		fmt.Println(r.URL.Path)
+		//
+		
 		d := cleanUselessData(strings.Split(r.URL.Path, "/"))
 
 		err := svc.Save(
-			metric.NewRawMetric( getName(d) , getKind(d), getValue(d)),
+			metric.NewRawMetric(getName(d), getKind(d), getValue(d)),
 		)
 
 		w.Header().Add("Content-Type", "text/plain")

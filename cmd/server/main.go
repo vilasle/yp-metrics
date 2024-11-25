@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/vilasle/yp-metrics/internal/repository/memory"
-	"github.com/vilasle/yp-metrics/internal/service"
-	"github.com/vilasle/yp-metrics/internal/transport/rest"
+	svc "github.com/vilasle/yp-metrics/internal/service/server"
+	rest "github.com/vilasle/yp-metrics/internal/transport/rest/server"
 )
 
 // http://localhost:8080/update/<metrisType>/<metricName>/<metricValue>
@@ -19,7 +19,7 @@ func main() {
 	gaugeStorage := memory.NewMetricGaugeMemoryRepository()
 	counterStorage := memory.NewMetricCounterMemoryRepository()
 
-	svc := service.NewStorageService(gaugeStorage, counterStorage)
+	svc := svc.NewStorageService(gaugeStorage, counterStorage)
 
 	server := rest.NewHTTPServer(":8080")
 
