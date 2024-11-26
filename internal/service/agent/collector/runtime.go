@@ -67,7 +67,11 @@ func (c *RuntimeCollector) Collect() {
 			c.gauges[v] = metric.NewGaugeMetric(v, float64(fld.Uint()))
 		}
 	}
+	c.execEvents()
 
+}
+
+func (c *RuntimeCollector) execEvents() {
 	for _, v := range c.events {
 		v(c)
 	}
