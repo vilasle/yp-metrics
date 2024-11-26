@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"time"
@@ -17,8 +18,8 @@ func main() {
 	err := c.RegisterMetric(metrics...)
 
 	if err != nil {
-		//TODO add message
-		panic(err)
+		fmt.Printf("can to register metric by reason %v\n", err)
+		os.Exit(1)
 	}
 
 	pollInterval := time.Second * 2
@@ -39,14 +40,13 @@ func main() {
 
 	sender, err := rest.NewHTTPSender("http://localhost:8080/update/")
 	if err != nil {
-		//TODO
-		panic(err)
+		fmt.Printf("can not create sender by reason %v", err)
+		os.Exit(2)
 	}
 
 	agent := NewCollectorAgent(c, sender)
 
-
-	for run := true; run;  {
+	for run := true; run; {
 		select {
 		case <-pollTicker.C:
 			agent.Collect()
