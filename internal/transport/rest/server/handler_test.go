@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/vilasle/yp-metrics/internal/repository/memory"
-	"github.com/vilasle/yp-metrics/internal/service"
+	"github.com/vilasle/yp-metrics/internal/service/server"
 )
 
 func TestUpdateHandler(t *testing.T) {
 
-	svc := service.NewStorageService(
+	svc := server.NewStorageService(
 		memory.NewMetricGaugeMemoryRepository(),
 		memory.NewMetricCounterMemoryRepository(),
 	)
@@ -57,7 +57,6 @@ func TestUpdateHandler(t *testing.T) {
 				"/update/gauge/test1/-4343534234634342.033",
 				"/update/gauge/test/-14000000000000.10",
 			},
-
 			contentType: []string{
 				"text/plain",
 			},
@@ -73,7 +72,7 @@ func TestUpdateHandler(t *testing.T) {
 			contentType: []string{
 				"text/plain",
 			},
-			statusCode: http.StatusOK,
+			statusCode: http.StatusBadRequest,
 		},
 		{
 			name:   "send gauge with empty value",
@@ -137,7 +136,7 @@ func TestUpdateHandler(t *testing.T) {
 			contentType: []string{
 				"text/plain",
 			},
-			statusCode: http.StatusOK,
+			statusCode: http.StatusBadRequest,
 		},
 		{
 			name:   "send counter with empty value",
