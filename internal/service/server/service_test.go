@@ -95,6 +95,14 @@ func TestStorageService_Save(t *testing.T) {
 			},
 			err: model.ErrConvertMetricFromString,
 		},
+		{
+			name:   "unknown kind of metric",
+			fields: _fields,
+			args: args{
+				metric: metric.NewRawMetric("test", "test", "test"),
+			},
+			err: ErrUnknownKind,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

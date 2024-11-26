@@ -54,8 +54,6 @@ func (s StorageService) save(data metric.RawMetric) error {
 	err := saver.Save()
 	if errors.Is(err, metric.ErrConvertingRawValue) {
 		return errors.Join(err, ErrInvalidValue)
-	} else if errors.Is(err, metric.ErrUnknownKind) {
-		return errors.Join(err, ErrUnknownKind)
 	}
 
 	return err
