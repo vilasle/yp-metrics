@@ -105,3 +105,15 @@ func (c *RuntimeCollector) GetCounterValue(name string) metric.CounterMetric {
 func (c *RuntimeCollector) SetCounterValue(counter metric.CounterMetric) {
 	c.counters[counter.Name()] = counter
 }
+
+func (c *RuntimeCollector) GetGaugeValue(name string) metric.GaugeMetric {
+	if v, ok := c.gauges[name]; ok {
+		return v
+	} else {
+		return metric.NewGaugeMetric(name, 0)
+	}
+}
+
+func (c *RuntimeCollector) SetGaugeValue(gauge metric.GaugeMetric) {
+	c.gauges[gauge.Name()] = gauge
+}

@@ -31,6 +31,10 @@ func (m GaugeMetric) Value() string {
 	return m.value.Value()
 }
 
+func (m *GaugeMetric) SetValue(v float64) {
+	m.value = model.Gauge(v)
+} 
+
 
 type CounterMetric struct {
 	name  string

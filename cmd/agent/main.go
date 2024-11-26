@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"time"
 
+	"math/rand"
+
 	"github.com/vilasle/yp-metrics/internal/service/agent/collector"
 	"github.com/vilasle/yp-metrics/internal/service/agent/sender/rest"
 )
@@ -30,6 +32,14 @@ func main() {
 		counter.Increment()
 
 		c.SetCounterValue(counter)
+	})
+
+	c.RegisterEvent(func(c *collector.RuntimeCollector) {
+		gauge := c.GetGaugeValue("RandomValue")
+		gauge.SetValue(rand.Float64())
+
+		c.SetGaugeValue(gauge)
+
 	})
 
 	sigint := make(chan os.Signal, 1)
