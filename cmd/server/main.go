@@ -59,8 +59,10 @@ func main() {
 		case err := <-stopErr:
 			if err != nil {
 				fmt.Println("server stopped with error", err)
+				server.ForceStop()
+			} else {
+				os.Exit(0)
 			}
-			server.ForceStop()
 		case <-tickForce.C:
 			go server.ForceStop()
 		case <-tickKill.C:
