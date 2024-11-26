@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -22,7 +24,6 @@ func NewHTTPSender(addr string) (HTTPSender, error) {
 	return HTTPSender{URL: u, client: http.Client{Timeout: time.Second * 5}}, nil
 }
 
-// TODO add handling status code
 func (s HTTPSender) Send(value metric.Metric) error {
 	u := *s.URL
 	u.Path = filepath.Join(s.Path, value.Type(), value.Name(), value.Value())
@@ -39,5 +40,14 @@ func (s HTTPSender) Send(value metric.Metric) error {
 	}
 	defer resp.Body.Close()
 
-	return nil
+	statusCode := resp.StatusCode
+
+	switch statusCode {
+	case http.StatusNotFound:
+		err = errors.Join(ErrWrongMetricName, fmt.Errorf("status code %d", statusCode))
+	case http.StatusBadRequest:
+		err = errors.Join(ErrWrongMetricTypeOrValue, fmt.Errorf("status code %d", statusCode))
+	}
+
+	return err
 }
