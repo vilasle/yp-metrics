@@ -80,7 +80,7 @@ func (c *RuntimeCollector) execEvents() {
 func (c *RuntimeCollector) AllMetrics() []metric.Metric {
 	metrics := make([]metric.Metric, len(c.gauges)+len(c.counters))
 
-	var i int = 0
+	var i int
 	for _, v := range c.gauges {
 		metrics[i] = v
 		i++
