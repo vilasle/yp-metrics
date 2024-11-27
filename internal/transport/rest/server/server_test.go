@@ -5,13 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 )
 
 func TestHttpServer_Register(t *testing.T) {
 	type args struct {
 		path    string
-		handler http.Handler
+		handler http.HandlerFunc
 	}
 	tests := []struct {
 		name string
@@ -28,7 +29,7 @@ func TestHttpServer_Register(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewHTTPServer(":8080")
-			s.Register(tt.args.path, tt.args.handler)
+			s.Register(tt.args.path, []string{http.MethodGet}, []string{}, tt.args.handler)
 		})
 	}
 }
@@ -39,14 +40,14 @@ func TestHttpServer_StartStop(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:	"start stop",
+			name:    "start stop",
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewHTTPServer(":8080")
-			s.Register("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+			s.Register("/test", []string{}, []string{}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){}))
 
 			go func() {
 				if err := s.Start(); (err != nil) != tt.wantErr {
@@ -75,14 +76,14 @@ func TestHttpServer_StartForceStop(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:	"start stop",
+			name:    "start stop",
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewHTTPServer(":8080")
-			s.Register("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+			s.Register("/test", []string{}, []string{}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
 			go func() {
 				if err := s.Start(); (err != nil) != tt.wantErr {
@@ -108,7 +109,7 @@ func TestHttpServer_StartForceStop(t *testing.T) {
 func TestHttpServer_IsRunning(t *testing.T) {
 	type fields struct {
 		srv     *http.Server
-		mux     *http.ServeMux
+		mux     *chi.Mux
 		running bool
 	}
 	tests := []struct {

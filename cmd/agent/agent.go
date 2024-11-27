@@ -3,7 +3,7 @@ package main
 import (
 	"sync"
 
-	"github.com/vilasle/yp-metrics/internal/service/agent"
+	agent "github.com/vilasle/yp-metrics/internal/service"
 )
 
 type collectorAgent struct {
