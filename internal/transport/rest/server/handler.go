@@ -35,15 +35,16 @@ func DisplayAllMetrics(svc service.StorageService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//FIXME refactor it
 		//this handler catch url like /updater or /values and need make up how it control
-		if r.Method != http.MethodGet {
-			http.Error(w, "", http.StatusMethodNotAllowed)
-			return
-		}
 		if r.RequestURI != "/" {
 			http.NotFound(w, nil)
 			return
 		}
 
+		if r.Method != http.MethodGet {
+			http.Error(w, "", http.StatusMethodNotAllowed)
+			return
+		}
+		
 		metrics, err := svc.AllMetrics()
 		if err != nil {
 			http.Error(w, "", http.StatusInternalServerError)
