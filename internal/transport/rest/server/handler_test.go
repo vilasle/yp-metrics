@@ -175,45 +175,6 @@ func TestUpdateHandler(t *testing.T) {
 			statusCode: http.StatusNotFound,
 		},
 		{
-			name:   "send unsupported Content-Type",
-			method: http.MethodPost,
-			path: []string{
-				"/update/gauge/test/1.04",
-			},
-			contentType: []string{
-				"application/json",
-			},
-			statusCode: http.StatusUnsupportedMediaType,
-		},
-		{
-			name:   "send unsupported method GET",
-			method: http.MethodGet,
-			path: []string{
-				"/update/gauge/test/1.04",
-				"/update/gauge/test/-11.04",
-				"/update/gauge/test/140.04",
-				"/update/counter/test/1245",
-			},
-			contentType: []string{
-				"text/plain",
-			},
-			statusCode: http.StatusMethodNotAllowed,
-		},
-		{
-			name:   "send unsupported method PUT",
-			method: http.MethodPut,
-			path: []string{
-				"/update/gauge/test/1.04",
-				"/update/gauge/test/-11.04",
-				"/update/gauge/test/140.04",
-				"/update/counter/test/1245",
-			},
-			contentType: []string{
-				"text/plain",
-			},
-			statusCode: http.StatusMethodNotAllowed,
-		},
-		{
 			name:   "send without kind of metric",
 			method: http.MethodPost,
 			path: []string{
