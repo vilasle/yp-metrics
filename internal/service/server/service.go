@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/vilasle/yp-metrics/internal/service"
 	"github.com/vilasle/yp-metrics/internal/metric"
 	"github.com/vilasle/yp-metrics/internal/model"
 	"github.com/vilasle/yp-metrics/internal/repository"
@@ -28,7 +29,7 @@ type unknownSaver struct {
 }
 
 func (c unknownSaver) Save() error {
-	return errors.Join(ErrUnknownKind, fmt.Errorf("unknown type %s", c.kind))
+	return errors.Join(service.ErrUnknownKind, fmt.Errorf("unknown type %s", c.kind))
 }
 
 func NewStorageService(
@@ -48,12 +49,22 @@ func (s StorageService) Save(data metric.RawMetric) error {
 	return s.save(data)
 }
 
+func (s StorageService) Get(name string) (metric.Metric, error) {
+	//TODO implement it
+	panic("not implemented")
+}
+
+func (s StorageService) AllMetrics() []metric.Metric {
+	//TODO implement it
+	panic("not implemented")
+}
+
 func (s StorageService) save(data metric.RawMetric) error {
 	saver := s.getSaverByType(data)
 
 	err := saver.Save()
 	if errors.Is(err, metric.ErrConvertingRawValue) {
-		return errors.Join(err, ErrInvalidValue)
+		return errors.Join(err, service.ErrInvalidValue)
 	}
 
 	return err
@@ -61,15 +72,15 @@ func (s StorageService) save(data metric.RawMetric) error {
 
 func (s StorageService) checkInput(data metric.RawMetric) error {
 	if data.Kind == "" {
-		return ErrEmptyKind
+		return service.ErrEmptyKind
 	}
 
 	if data.Name == "" {
-		return ErrEmptyName
+		return service.ErrEmptyName
 	}
 
 	if data.Value == "" {
-		return ErrEmptyValue
+		return service.ErrEmptyValue
 	}
 	return nil
 }

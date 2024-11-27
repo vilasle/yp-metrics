@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/vilasle/yp-metrics/internal/metric"
-	"github.com/vilasle/yp-metrics/internal/service/server"
+	"github.com/vilasle/yp-metrics/internal/service"
 )
 
-func UpdateHandler(svc *server.StorageService) http.HandlerFunc {
+func UpdateHandler(svc service.StorageService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d := cleanUselessData(strings.Split(r.URL.Path, "/"))
 
@@ -22,14 +22,14 @@ func UpdateHandler(svc *server.StorageService) http.HandlerFunc {
 	})
 }
 
-func DisplayAllMetrics(svc *server.StorageService) http.HandlerFunc {
+func DisplayAllMetrics(svc service.StorageService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusNotImplemented)
 	})
 }
 
-func DisplayMetric(svc *server.StorageService) http.HandlerFunc {
+func DisplayMetric(svc service.StorageService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/plain]; charset=utf-8")
 		w.WriteHeader(http.StatusNotImplemented)
@@ -78,12 +78,12 @@ func getStatusCode(err error) int {
 }
 
 func errorBadRequest(err error) bool {
-	return errors.Is(err, server.ErrEmptyKind) ||
-		errors.Is(err, server.ErrUnknownKind) ||
-		errors.Is(err, server.ErrInvalidValue) ||
-		errors.Is(err, server.ErrEmptyValue)
+	return errors.Is(err, service.ErrEmptyKind) ||
+		errors.Is(err, service.ErrUnknownKind) ||
+		errors.Is(err, service.ErrInvalidValue) ||
+		errors.Is(err, service.ErrEmptyValue)
 }
 
 func errorNotFound(err error) bool {
-	return err == server.ErrEmptyName
+	return err == service.ErrEmptyName
 }

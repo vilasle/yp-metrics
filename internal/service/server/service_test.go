@@ -9,6 +9,7 @@ import (
 	"github.com/vilasle/yp-metrics/internal/model"
 	"github.com/vilasle/yp-metrics/internal/repository"
 	"github.com/vilasle/yp-metrics/internal/repository/memory"
+	"github.com/vilasle/yp-metrics/internal/service"
 )
 
 func TestStorageService_Save(t *testing.T) {
@@ -37,7 +38,7 @@ func TestStorageService_Save(t *testing.T) {
 			args: args{
 				metric: metric.NewRawMetric("", keyGauge, "12.45"),
 			},
-			err: ErrEmptyName,
+			err: service.ErrEmptyName,
 		},
 		{
 			name:   "problems with input, did not fill kind of metric",
@@ -45,7 +46,7 @@ func TestStorageService_Save(t *testing.T) {
 			args: args{
 				metric: metric.NewRawMetric("test", "", "12.45"),
 			},
-			err: ErrEmptyKind,
+			err: service.ErrEmptyKind,
 		},
 		{
 			name:   "problems with input, did not fill value of metric",
@@ -53,7 +54,7 @@ func TestStorageService_Save(t *testing.T) {
 			args: args{
 				metric: metric.NewRawMetric("test", keyGauge, ""),
 			},
-			err: ErrEmptyValue,
+			err: service.ErrEmptyValue,
 		},
 		{
 			name:   "metric is filled but contents unknown kind",
@@ -61,7 +62,7 @@ func TestStorageService_Save(t *testing.T) {
 			args: args{
 				metric: metric.NewRawMetric("test", "test", "123.4"),
 			},
-			err: ErrUnknownKind,
+			err: service.ErrUnknownKind,
 		},
 		{
 			name:   "gauge metric is filled and kind is right",
@@ -101,7 +102,7 @@ func TestStorageService_Save(t *testing.T) {
 			args: args{
 				metric: metric.NewRawMetric("test", "test", "test"),
 			},
-			err: ErrUnknownKind,
+			err: service.ErrUnknownKind,
 		},
 	}
 	for _, tt := range tests {
@@ -151,7 +152,7 @@ func TestStorageService_checkInput(t *testing.T) {
 			args: args{
 				data: metric.NewRawMetric("", keyGauge, "12.45"),
 			},
-			err: ErrEmptyName,
+			err: service.ErrEmptyName,
 		},
 		{
 			name:   "empty kind",
@@ -159,7 +160,7 @@ func TestStorageService_checkInput(t *testing.T) {
 			args: args{
 				data: metric.NewRawMetric("test", "", "12.45"),
 			},
-			err: ErrEmptyKind,
+			err: service.ErrEmptyKind,
 		},
 		{
 			name:   "empty value",
@@ -167,7 +168,7 @@ func TestStorageService_checkInput(t *testing.T) {
 			args: args{
 				data: metric.NewRawMetric("test", keyGauge, ""),
 			},
-			err: ErrEmptyValue,
+			err: service.ErrEmptyValue,
 		},
 	}
 
