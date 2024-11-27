@@ -9,7 +9,7 @@ import (
 	"github.com/vilasle/yp-metrics/internal/service/server"
 )
 
-func TestUpdateHandler(t *testing.T) {
+func TestUpdateMetric(t *testing.T) {
 	svc := server.NewStorageService(
 		memory.NewMetricGaugeMemoryRepository(),
 		memory.NewMetricCounterMemoryRepository(),
@@ -198,7 +198,7 @@ func TestUpdateHandler(t *testing.T) {
 					req.Header.Set("Content-Type", ct)
 				}
 				rr := httptest.NewRecorder()
-				handler := UpdateHandler(svc)
+				handler := UpdateMetric(svc)
 				handler.ServeHTTP(rr, req)
 				if status := rr.Code; status != tt.statusCode {
 					t.Errorf("handler returned wrong status code: got %v want %v",

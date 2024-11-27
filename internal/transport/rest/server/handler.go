@@ -2,6 +2,8 @@ package rest
 
 import (
 	"errors"
+	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
 
@@ -9,7 +11,14 @@ import (
 	"github.com/vilasle/yp-metrics/internal/service"
 )
 
-func UpdateHandler(svc service.StorageService) http.HandlerFunc {
+type viewData struct {
+	Metrics []struct {
+		Name string
+		Link string
+	}
+}
+
+func UpdateMetric(svc service.StorageService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d := cleanUselessData(strings.Split(r.URL.Path, "/"))
 
@@ -24,22 +33,75 @@ func UpdateHandler(svc service.StorageService) http.HandlerFunc {
 
 func DisplayAllMetrics(svc service.StorageService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.RequestURI != "/" {
+			http.NotFound(w, nil)
+			return
+		}
+
+		metrics, err := svc.AllMetrics()
+		if err != nil {
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		data := viewData{Metrics: []struct {
+			Name string
+			Link string
+		}{}}
+
+		for _, m := range metrics {
+			data.Metrics = append(data.Metrics, struct {
+				Name string
+				Link string
+			}{
+				Name: m.Name(),
+				Link: fmt.Sprintf("/value/%s/%s", m.Type(), m.Name()),
+			})
+		}
+
+		if view, err := template.New("metrics").Parse(allMetricsTemplate()); err == nil {
+			view.Execute(w, data)
+		} else {
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+
+		}
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusNotImplemented)
+		w.WriteHeader(http.StatusOK)
 	})
 }
 
 func DisplayMetric(svc service.StorageService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d := cleanUselessData(strings.Split(r.URL.Path, "/"))
+
+		k, n := getKind(d), getName(d)
+
+		if k == "" || n == "" {
+			http.NotFound(w, nil)
+			return
+		}
+		//TODO error handling. define response by error
+		metric, err := svc.Get(n, k)
+		if err != nil && (errors.Is(err, service.ErrMetricIsNotExist) || errors.Is(err, service.ErrUnknownKind)) {
+			http.NotFound(w, nil)
+			return
+		} else if err != nil {
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		w.Write([]byte(metric.Value()))
+
 		w.Header().Add("Content-Type", "text/plain]; charset=utf-8")
-		w.WriteHeader(http.StatusNotImplemented)
+		w.WriteHeader(http.StatusOK)
 	})
 }
 
 func cleanUselessData(data []string) []string {
 	startInx := 0
 	for startInx = range data {
-		if data[startInx] == "" || data[startInx] == "update" {
+		if data[startInx] == "" || data[startInx] == "update" || data[startInx] == "value" {
 			continue
 		}
 		return data[startInx:]
@@ -86,4 +148,20 @@ func errorBadRequest(err error) bool {
 
 func errorNotFound(err error) bool {
 	return err == service.ErrEmptyName
+}
+
+func allMetricsTemplate() string {
+	return `
+	<html>
+		<head>
+			<title>Metrics</title>
+		</head>
+		<body>
+			<ul style="list-style: none;">
+			{{range .Metrics}}
+				<li> <a href="{{ .Link }}">{{.Name}}</li>
+			{{end}}
+			</ul>
+		</body>
+	</html>`
 }

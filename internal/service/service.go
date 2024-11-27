@@ -6,8 +6,8 @@ import "github.com/vilasle/yp-metrics/internal/metric"
 
 type StorageService interface {
 	Save(metric.RawMetric) error
-	Get(string) (metric.Metric, error)
-	AllMetrics() []metric.Metric
+	Get(name string, kind string) (metric.Metric, error)
+	AllMetrics() ([]metric.Metric, error)
 }
 
 //agent interfaces

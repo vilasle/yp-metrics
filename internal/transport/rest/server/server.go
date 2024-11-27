@@ -31,15 +31,18 @@ func NewHTTPServer(addr string) HTTPServer {
 	}
 }
 
-func (s HTTPServer) Register(path string, methods []string, contentTypes []string,  handler http.HandlerFunc) {
-	
+func (s HTTPServer) Register(path string, methods []string, contentTypes []string, handler http.HandlerFunc) {
 	s.mux.Route(path, func(r chi.Router) {
-		r.Use(allowedContentType(contentTypes...))
-		r.Use(allowedMethods(methods...))
-		r.HandleFunc("/", handler)
+		if len(methods) > 0 {
+			r.Use(allowedMethods(methods...))
+		}
+
+		if len(contentTypes) > 0 {
+			r.Use(allowedContentType(contentTypes...))
+		}
+
+		r.HandleFunc("/*", handler)
 	})
-	
-	s.mux.Handle(path, handler)
 }
 
 func (s *HTTPServer) Start() error {
@@ -73,6 +76,3 @@ func (s *HTTPServer) Stop() error {
 func (s HTTPServer) ForceStop() error {
 	return s.srv.Close()
 }
-
-
-
