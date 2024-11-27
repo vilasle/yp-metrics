@@ -30,7 +30,7 @@ func main() {
 
 	server.Register("/", methods(), contentTypes(), rest.DisplayAllMetrics(svc))
 	server.Register("/value/", methods(http.MethodGet), contentTypes(), rest.DisplayMetric(svc))
-	server.Register("/update/", methods(http.MethodPost), contentTypes("text/plain"), rest.UpdateMetric(svc))
+	server.Register("/update/", methods(http.MethodPost), contentTypes(), rest.UpdateMetric(svc))
 
 	stop := make(chan os.Signal, 1)
 	defer close(stop)
