@@ -10,7 +10,6 @@ import (
 )
 
 func TestUpdateHandler(t *testing.T) {
-
 	svc := server.NewStorageService(
 		memory.NewMetricGaugeMemoryRepository(),
 		memory.NewMetricCounterMemoryRepository(),

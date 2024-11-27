@@ -4,15 +4,22 @@ import (
 	"context"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type HTTPServer struct {
 	srv     *http.Server
-	mux     *http.ServeMux
+	mux     *chi.Mux
 	running bool
 }
 
 func NewHTTPServer(addr string) HTTPServer {
+	mux := chi.NewRouter()
+	mux.Use(middleware.Recoverer)
+	mux.Use(middleware.Logger)
+
 	return HTTPServer{
 		srv: &http.Server{
 			Addr:         addr,
@@ -20,11 +27,18 @@ func NewHTTPServer(addr string) HTTPServer {
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  60 * time.Second,
 		},
-		mux: http.NewServeMux(),
+		mux: mux,
 	}
 }
 
-func (s HTTPServer) Register(path string, handler http.Handler) {
+func (s HTTPServer) Register(path string, methods []string, contentTypes []string,  handler http.HandlerFunc) {
+	
+	s.mux.Route(path, func(r chi.Router) {
+		r.Use(allowedContentType(contentTypes...))
+		r.Use(allowedMethods(methods...))
+		r.HandleFunc("/", handler)
+	})
+	
 	s.mux.Handle(path, handler)
 }
 
@@ -59,3 +73,6 @@ func (s *HTTPServer) Stop() error {
 func (s HTTPServer) ForceStop() error {
 	return s.srv.Close()
 }
+
+
+

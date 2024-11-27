@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	service "github.com/vilasle/yp-metrics/internal/service/server"
+
 	"github.com/vilasle/yp-metrics/internal/repository/memory"
-	svc "github.com/vilasle/yp-metrics/internal/service/server"
 	rest "github.com/vilasle/yp-metrics/internal/transport/rest/server"
 )
 
@@ -22,11 +24,13 @@ func main() {
 	gaugeStorage := memory.NewMetricGaugeMemoryRepository()
 	counterStorage := memory.NewMetricCounterMemoryRepository()
 
-	svc := svc.NewStorageService(gaugeStorage, counterStorage)
+	svc := service.NewStorageService(gaugeStorage, counterStorage)
 
 	server := rest.NewHTTPServer(":8080")
 
-	server.Register("/update/", rest.UpdateHandler(svc))
+	server.Register("/", methods(http.MethodGet), contentTypes("text/plain"), rest.DisplayAllMetrics(svc))
+	server.Register("/value/", methods(http.MethodGet), contentTypes("text/plain"), rest.DisplayAllMetrics(svc))
+	server.Register("/update", methods(http.MethodPost), contentTypes("text/plain"), rest.DisplayAllMetrics(svc))
 
 	stop := make(chan os.Signal, 1)
 	defer close(stop)
@@ -71,4 +75,11 @@ func main() {
 		}
 	}
 
+}
+func contentTypes(contentType ...string) []string {
+	return contentType
+}
+
+func methods(method ...string) []string {
+	return method
 }
