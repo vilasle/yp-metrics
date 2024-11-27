@@ -28,7 +28,7 @@ func main() {
 
 	server := rest.NewHTTPServer(":8080")
 
-	server.Register("/", methods(http.MethodGet), contentTypes(), rest.DisplayAllMetrics(svc))
+	server.Register("/", methods(), contentTypes(), rest.DisplayAllMetrics(svc))
 	server.Register("/value/", methods(http.MethodGet), contentTypes(), rest.DisplayMetric(svc))
 	server.Register("/update/", methods(http.MethodPost), contentTypes("text/plain"), rest.UpdateMetric(svc))
 
