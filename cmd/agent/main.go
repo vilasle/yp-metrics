@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -14,6 +15,12 @@ import (
 
 func main() {
 
+	endpoint := flag.String("a", "localhost:8080", "endpoint to send metrics")
+	reportSec := flag.Int("r", 10, "timeout(sec) for sending report to server")
+	pollSec := flag.Int("p", 2, "timeout(sec) for polling metrics")
+
+	flag.Parse()
+
 	c := collector.NewRuntimeCollector()
 
 	metrics := defaultGaugeMetrics()
@@ -24,8 +31,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	pollInterval := time.Second * 2
-	reportInterval := time.Second * 10
+	pollInterval := time.Second * time.Duration(*pollSec)
+	reportInterval := time.Second * time.Duration(*reportSec)
 
 	c.RegisterEvent(func(c *collector.RuntimeCollector) {
 		counter := c.GetCounterValue("PullCount")
@@ -48,7 +55,15 @@ func main() {
 	pollTicker := time.NewTicker(pollInterval)
 	reportTicker := time.NewTicker(reportInterval)
 
-	sender, err := rest.NewHTTPSender("http://localhost:8080/update/")
+	updateAddress := fmt.Sprintf("http://%s/update/", *endpoint)
+
+	fmt.Printf("sending metrics to %s\n", updateAddress)
+	fmt.Printf("polling metrics every %d sec\n", *pollSec)
+	fmt.Printf("sending report every %d sec\n", *reportSec)
+
+	fmt.Println("press ctrl+c to exit")
+
+	sender, err := rest.NewHTTPSender(updateAddress)
 	if err != nil {
 		fmt.Printf("can not create sender by reason %v", err)
 		os.Exit(2)
