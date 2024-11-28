@@ -14,6 +14,25 @@ import (
 	rest "github.com/vilasle/yp-metrics/internal/transport/rest/server"
 )
 
+type runConfig struct {
+	address string
+}
+
+func getConfig() runConfig {
+	address := flag.String("a", "localhost:8080", "address for server")
+
+	flag.Parse()
+
+	envAddress := os.Getenv("ADDRESS")
+	if envAddress != "" {
+		*address = envAddress
+	}
+
+	return runConfig{
+		address: *address,
+	}
+}
+
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -21,16 +40,14 @@ func main() {
 		}
 	}()
 
-	address := flag.String("a", "localhost:8080", "address for server")
-
-	flag.Parse()
+	conf := getConfig()
 
 	gaugeStorage := memory.NewMetricGaugeMemoryRepository()
 	counterStorage := memory.NewMetricCounterMemoryRepository()
 
 	svc := service.NewStorageService(gaugeStorage, counterStorage)
 
-	server := rest.NewHTTPServer(*address)
+	server := rest.NewHTTPServer(conf.address)
 
 	server.Register("/", methods(), contentTypes(), rest.DisplayAllMetrics(svc))
 	server.Register("/value/", methods(http.MethodGet), contentTypes(), rest.DisplayMetric(svc))
@@ -41,7 +58,7 @@ func main() {
 
 	signal.Notify(stop, os.Interrupt)
 
-	fmt.Printf("run server on %s\n", *address)
+	fmt.Printf("run server on %s\n", conf)
 	go func() {
 		if err := server.Start(); err != nil {
 			fmt.Printf("server starting got error, %v", err)

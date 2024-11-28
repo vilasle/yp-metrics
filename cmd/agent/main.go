@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	"math/rand"
@@ -13,13 +14,52 @@ import (
 	"github.com/vilasle/yp-metrics/internal/service/agent/sender/rest"
 )
 
-func main() {
+type runConfig struct {
+	endpoint string
+	report   time.Duration
+	poll     time.Duration
+}
 
+func getConfig() runConfig {
 	endpoint := flag.String("a", "localhost:8080", "endpoint to send metrics")
 	reportSec := flag.Int("r", 10, "timeout(sec) for sending report to server")
 	pollSec := flag.Int("p", 2, "timeout(sec) for polling metrics")
 
 	flag.Parse()
+
+	envEndpoint := os.Getenv("ADDRESS")
+	if envEndpoint != "" {
+		endpoint = &envEndpoint
+	}
+
+	envReportSec := os.Getenv("REPORT_INTERVAL")
+	if envReportSec != "" {
+		if v, err := strconv.Atoi(envReportSec); err == nil {
+			reportSec = &v
+		} else {
+			fmt.Printf("can not parse REPORT_INTERVAL %s. will use value %d\n", envReportSec, *reportSec)
+		}
+	}
+
+	envPollSec := os.Getenv("POLL_INTERVAL")
+	if envPollSec != "" {
+		if v, err := strconv.Atoi(envPollSec); err == nil {
+			pollSec = &v
+		} else {
+			fmt.Printf("can not parse POLL_INTERVAL %s. will use value %d\n", envReportSec, *pollSec)
+		}
+	}
+
+	return runConfig{
+		endpoint: *endpoint,
+		poll:     time.Second * time.Duration(*pollSec),
+		report:   time.Second * time.Duration(*reportSec),
+	}
+}
+
+func main() {
+
+	conf := getConfig()
 
 	c := collector.NewRuntimeCollector()
 
@@ -31,8 +71,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	pollInterval := time.Second * time.Duration(*pollSec)
-	reportInterval := time.Second * time.Duration(*reportSec)
+	pollInterval := conf.poll
+	reportInterval := conf.report
 
 	c.RegisterEvent(func(c *collector.RuntimeCollector) {
 		counter := c.GetCounterValue("PullCount")
@@ -55,11 +95,11 @@ func main() {
 	pollTicker := time.NewTicker(pollInterval)
 	reportTicker := time.NewTicker(reportInterval)
 
-	updateAddress := fmt.Sprintf("http://%s/update/", *endpoint)
+	updateAddress := fmt.Sprintf("http://%s/update/", conf.endpoint)
 
 	fmt.Printf("sending metrics to %s\n", updateAddress)
-	fmt.Printf("polling metrics every %d sec\n", *pollSec)
-	fmt.Printf("sending report every %d sec\n", *reportSec)
+	fmt.Printf("pulling metrics every %d sec\n", conf.poll/time.Second)
+	fmt.Printf("sending report every %d sec\n", conf.report/time.Second)
 
 	fmt.Println("press ctrl+c to exit")
 
