@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 
 	agent "github.com/vilasle/yp-metrics/internal/service"
@@ -32,6 +33,8 @@ func (a collectorAgent) Report() {
 	defer a.mx.Unlock()
 
 	for _, metric := range a.Collector.AllMetrics() {
-		a.Sender.Send(metric)
+		if err := a.Sender.Send(metric); err != nil {
+			fmt.Printf("can not send metric report by reason %v", err)
+		}
 	}
 }

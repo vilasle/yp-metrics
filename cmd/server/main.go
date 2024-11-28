@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,7 +14,6 @@ import (
 	rest "github.com/vilasle/yp-metrics/internal/transport/rest/server"
 )
 
-// http://localhost:8080/update/<metrisType>/<metricName>/<metricValue>
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -21,12 +21,16 @@ func main() {
 		}
 	}()
 
+	address := flag.String("a", "localhost:8080", "address for server")
+
+	flag.Parse()
+
 	gaugeStorage := memory.NewMetricGaugeMemoryRepository()
 	counterStorage := memory.NewMetricCounterMemoryRepository()
 
 	svc := service.NewStorageService(gaugeStorage, counterStorage)
 
-	server := rest.NewHTTPServer(":8080")
+	server := rest.NewHTTPServer(*address)
 
 	server.Register("/", methods(), contentTypes(), rest.DisplayAllMetrics(svc))
 	server.Register("/value/", methods(http.MethodGet), contentTypes(), rest.DisplayMetric(svc))
@@ -37,6 +41,7 @@ func main() {
 
 	signal.Notify(stop, os.Interrupt)
 
+	fmt.Printf("run server on %s\n", *address)
 	go func() {
 		if err := server.Start(); err != nil {
 			fmt.Printf("server starting got error, %v", err)
